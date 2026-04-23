@@ -6,7 +6,7 @@ import { Business } from '../types/business';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Input } from './ui/input';
-import { Bug, MapPin, LogOut, Plus, Mail, Phone, Globe, X, Search, Edit, Trash2 } from 'lucide-react';
+import { Bug, MapPin, LogOut, Plus, Mail, Phone, Globe, X, Search, Edit, Trash2, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Coordenadas de estados con enfoque en la Península de Yucatán
@@ -61,79 +61,37 @@ export function MapView() {
       return;
     }
 
-    // Cargar negocios desde localStorage
-    const storedBusinesses = localStorage.getItem('businesses');
-    if (storedBusinesses) {
-      setBusinesses(JSON.parse(storedBusinesses));
-    } else {
-      // Agregar negocios de ejemplo si no hay ninguno guardado
-      const sampleBusinesses: Business[] = [
-        {
-          id: 'sample-1',
-          userId: 'demo-user-1',
-          nombre: 'Miel Melipona Maya',
-          productos: ['Miel pura', 'Polen', 'Propóleo', 'Cremas naturales'],
-          tipoMiel: 'Monofloral',
-          florMiel: 'Melipona (Abeja Maya)',
+    // Fetch desde el backend
+    const fetchBusinesses = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/negocios');
+        const data = await res.json();
+        
+        // Mapear los datos de MySQL al tipo Business del Frontend
+        const mapped = data.map((b: any) => ({
+          id: b.id.toString(),
+          userId: b.usuario_id.toString(),
+          nombre: b.nombre,
+          logoUrl: b.logo_url || undefined,
+          productos: typeof b.productos === 'string' ? JSON.parse(b.productos) : b.productos,
+          tipoMiel: b.tipo_miel || 'Multifloral', // Default fallback
+          florMiel: b.flor_origen || 'Variada',
           ubicacion: {
-            lat: 20.7099,
-            lng: -89.0943,
-            estado: 'Yucatán',
+            ...(typeof b.coordenadas === 'string' ? JSON.parse(b.coordenadas) : (b.coordenadas || {})),
+            estado: b.estado || (typeof b.coordenadas === 'string' ? JSON.parse(b.coordenadas)?.estado : b.coordenadas?.estado)
           },
-          contacto: {
-            correo: 'contacto@meliponamaya.com',
-            telefono: '(999) 123-4567',
-            direccion: 'Calle 60 #450, Centro, Mérida, Yucatán',
-            sitioWeb: 'https://www.meliponamaya.com',
-          },
-          descripcion: 'Productores artesanales de miel de abeja melipona, una tradición maya de más de 3,000 años. Nuestra miel es 100% orgánica y certificada, producida por las abejas nativas sin aguijón de la Península de Yucatán.',
-          fechaCreacion: new Date('2024-01-15').toISOString(),
-        },
-        {
-          id: 'sample-2',
-          userId: 'demo-user-2',
-          nombre: 'Apiarios Don José',
-          productos: ['Miel pura', 'Jalea real', 'Cera de abeja', 'Velas de cera', 'Jabones naturales'],
-          tipoMiel: 'Multifloral',
-          florMiel: 'Multifloral de la Península',
-          ubicacion: {
-            lat: 19.8301,
-            lng: -90.5349,
-            estado: 'Campeche',
-          },
-          contacto: {
-            correo: 'ventas@apiariosdonjose.mx',
-            telefono: '(981) 234-5678',
-            direccion: 'Km 5 Carretera Campeche-Mérida, Campeche',
-          },
-          descripcion: 'Empresa familiar con más de 30 años de experiencia en la producción de miel y derivados. Trabajamos con abejas europeas y meliponas, ofreciendo productos de la más alta calidad con certificación orgánica.',
-          fechaCreacion: new Date('2024-02-20').toISOString(),
-        },
-        {
-          id: 'sample-3',
-          userId: 'demo-user-3',
-          nombre: 'Cooperativa Kabah',
-          productos: ['Miel pura', 'Polen', 'Propóleo', 'Shampoo de miel'],
-          tipoMiel: 'Orgánica',
-          florMiel: 'Tajonal y Dzidzilché',
-          ubicacion: {
-            lat: 20.5,
-            lng: -89.5,
-            estado: 'Yucatán',
-          },
-          contacto: {
-            correo: 'cooperativa@kabah.org',
-            telefono: '(999) 987-6543',
-            direccion: 'Comunidad Maya, Interior de Yucatán',
-            sitioWeb: 'https://www.cooperativakabah.org',
-          },
-          descripcion: 'Cooperativa de productores mayas especializados en miel de melipona. Preservamos las técnicas ancestrales de manejo de abejas nativas y promovemos el desarrollo sustentable de nuestras comunidades.',
-          fechaCreacion: new Date('2024-03-10').toISOString(),
-        },
-      ];
-      setBusinesses(sampleBusinesses);
-      localStorage.setItem('businesses', JSON.stringify(sampleBusinesses));
-    }
+          contacto: typeof b.contacto === 'string' ? JSON.parse(b.contacto) : (b.contacto || {}),
+          descripcion: b.descripcion,
+          fechaCreacion: b.creado_en
+        }));
+        
+        setBusinesses(mapped);
+      } catch (err) {
+        console.error('Error cargando negocios:', err);
+      }
+    };
+    
+    fetchBusinesses();
   }, [user, navigate]);
 
   // Inicializar el mapa
@@ -164,7 +122,10 @@ export function MapView() {
   const filteredBusinesses = useMemo(() => {
     return businesses.filter(business => {
       const matchesSearch = business.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           business.productos.some(p => p.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                           business.productos.some((p: any) => {
+                             const nombre = typeof p === 'string' ? p : p.nombre;
+                             return nombre.toLowerCase().includes(searchTerm.toLowerCase());
+                           }) ||
                            business.florMiel.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = !filterEstado || business.ubicacion.estado === filterEstado;
       const matchesTipoMiel = !filterTipoMiel || business.tipoMiel === filterTipoMiel;
@@ -208,11 +169,14 @@ export function MapView() {
       // Crear contenido del popup
       const popupContent = `
         <div class="p-2">
-          <div class="flex items-start justify-between mb-2">
-            <h3 class="font-bold text-gray-900 text-base">${business.nombre}</h3>
-            <span class="text-amber-500 ml-2 text-xl">🐝</span>
+          <div class="flex items-center gap-3 mb-2">
+            ${business.logoUrl ? 
+              `<img src="${business.logoUrl}" class="w-10 h-10 rounded-full object-cover border border-amber-200" />` : 
+              `<div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-lg">🐝</div>`
+            }
+            <h3 class="font-bold text-gray-900 text-base leading-tight">${business.nombre}</h3>
           </div>
-          <div class="flex items-center gap-1 text-sm text-gray-600 mb-2">
+          <div class="flex items-center gap-1 text-sm text-gray-600 mb-2 mt-1">
             <span>📍</span>
             ${business.ubicacion.estado}
           </div>
@@ -267,11 +231,24 @@ export function MapView() {
 
   // Escuchar evento personalizado para seleccionar negocio desde el popup
   useEffect(() => {
+    const handleSelectBusinessInteract = async (business: Business) => {
+      setSelectedBusiness(business);
+      if (user?.id !== business.userId) {
+        try {
+          await fetch(`http://localhost:5001/api/negocios/${business.id}/interact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'view' })
+          });
+        } catch(e) {}
+      }
+    };
+
     const handleSelectBusiness = (event: CustomEvent) => {
       const businessId = event.detail;
       const business = businesses.find(b => b.id === businessId);
       if (business) {
-        setSelectedBusiness(business);
+        handleSelectBusinessInteract(business);
       }
     };
 
@@ -287,6 +264,21 @@ export function MapView() {
     toast.success('Sesión cerrada exitosamente');
   };
 
+  const handleContactWhatsapp = async (phone: string, businessId: string) => {
+    if (user?.id !== businesses.find(b => b.id === businessId)?.userId) {
+      try {
+        await fetch(`http://localhost:5001/api/negocios/${businessId}/interact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'contact' })
+        });
+      } catch (e) {}
+    }
+    const waPhone = phone.replace(/[^0-9]/g, '');
+    let text = '¡Hola! Vi tu apiario en MeliHub y me interesa.';
+    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const handleAddBusiness = () => {
     setShowAddForm(true);
   };
@@ -296,13 +288,17 @@ export function MapView() {
     setShowEditForm(true);
   };
 
-  const handleDeleteBusiness = (businessId: string) => {
+  const handleDeleteBusiness = async (businessId: string) => {
     if (confirm('¿Estás seguro de que deseas eliminar este negocio?')) {
-      const updatedBusinesses = businesses.filter(b => b.id !== businessId);
-      setBusinesses(updatedBusinesses);
-      localStorage.setItem('businesses', JSON.stringify(updatedBusinesses));
-      setSelectedBusiness(null);
-      toast.success('Negocio eliminado exitosamente');
+      try {
+        await fetch(`http://localhost:5001/api/negocios/${businessId}`, { method: 'DELETE' });
+        const updatedBusinesses = businesses.filter(b => b.id !== businessId);
+        setBusinesses(updatedBusinesses);
+        setSelectedBusiness(null);
+        toast.success('Negocio eliminado exitosamente');
+      } catch (err) {
+        toast.error('Error al eliminar negocio');
+      }
     }
   };
 
@@ -310,25 +306,23 @@ export function MapView() {
   const isOwner = (business: Business) => business.userId === user?.id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
+    <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-amber-500/30">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-amber-100 sticky top-0 z-50">
+      <header className="bg-slate-900/80 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.1)] border-b border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="bg-amber-500 p-2 rounded-lg">
-                <Bug className="w-6 h-6 text-white" />
-              </div>
+              <img src="/logo.png" alt="MeliHub" className="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Apiario México</h1>
-                <p className="text-xs sm:text-sm text-gray-600">{user?.email}</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-amber-500 tracking-tight">MeliHub</h1>
+                <p className="text-xs sm:text-sm text-slate-400">{user?.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               {user?.role === 'apicultor' && (
                 <Button 
                   onClick={handleAddBusiness}
-                  className="bg-amber-500 hover:bg-amber-600"
+                  className="bg-amber-500 hover:bg-amber-600 shadow-sm transition-all"
                   size="sm"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -336,15 +330,34 @@ export function MapView() {
                   <span className="sm:hidden">Agregar</span>
                 </Button>
               )}
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="border-amber-300"
-                size="sm"
-              >
-                <LogOut className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Cerrar Sesión</span>
-              </Button>
+              
+              <div className="flex bg-slate-800/50 rounded-lg p-1 border border-slate-700 shadow-inner">
+                <Button
+                  onClick={() => navigate('/profile')}
+                  variant="ghost"
+                  className="text-amber-400 hover:text-amber-300 hover:bg-slate-700/50 rounded-md h-8 px-3 transition-colors"
+                  size="sm"
+                >
+                  {user?.foto_perfil ? (
+                    <img src={user.foto_perfil} alt="Perfil" className="w-5 h-5 rounded-full object-cover mr-0 sm:mr-2 border border-amber-500" />
+                  ) : (
+                    <User className="w-4 h-4 sm:mr-2" />
+                  )}
+                  <span className="hidden sm:inline font-medium">Perfil</span>
+                </Button>
+                
+                <div className="w-px h-5 bg-slate-700 my-auto mx-1"></div>
+                
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-md h-8 px-3 transition-colors"
+                  size="sm"
+                >
+                  <LogOut className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline font-medium">Salir</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -352,75 +365,75 @@ export function MapView() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
-          <div className="mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              Mapa de Productores de Miel de México
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl shadow-black/50 p-4 sm:p-8">
+          <div className="mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-2 tracking-tight">
+              Directorio Melipona
             </h2>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-sm sm:text-base text-slate-400">
               {user?.role === 'apicultor' 
                 ? 'Haz clic en "Agregar Negocio" para registrar tu apiario'
-                : 'Explora los productores de miel en México, especialmente en la Península de Yucatán'
+                : 'Explora los productores de miel estelares en México, especialmente en la Península de Yucatán'
               }
             </p>
           </div>
 
           {/* Estadísticas - Solo para clientes */}
           {user?.role === 'cliente' && businesses.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-lg border-2 border-amber-200">
-                <div className="flex items-center gap-2 mb-1">
-                  <Bug className="w-5 h-5 text-amber-600" />
-                  <p className="text-xs sm:text-sm font-medium text-amber-800">Total Apiarios</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
+              <div className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl backdrop-blur-sm shadow-inner hover:bg-slate-800 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bug className="w-5 h-5 text-amber-500" />
+                  <p className="text-xs sm:text-sm font-medium text-slate-400">Total Apiarios</p>
                 </div>
-                <p className="text-2xl sm:text-3xl font-bold text-amber-900">{stats.total}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-slate-100">{stats.total}</p>
               </div>
               
-              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border-2 border-yellow-200">
-                <div className="flex items-center gap-2 mb-1">
-                  <MapPin className="w-5 h-5 text-yellow-600" />
-                  <p className="text-xs sm:text-sm font-medium text-yellow-800">Península</p>
+              <div className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl backdrop-blur-sm shadow-inner hover:bg-slate-800 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-5 h-5 text-yellow-500" />
+                  <p className="text-xs sm:text-sm font-medium text-slate-400">Península</p>
                 </div>
-                <p className="text-2xl sm:text-3xl font-bold text-yellow-900">{stats.peninsula}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-slate-100">{stats.peninsula}</p>
               </div>
               
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border-2 border-orange-200">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🍯</span>
-                  <p className="text-xs sm:text-sm font-medium text-orange-800">Tipos Miel</p>
+              <div className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl backdrop-blur-sm shadow-inner hover:bg-slate-800 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bug className="w-5 h-5 text-orange-400" />
+                  <p className="text-xs sm:text-sm font-medium text-slate-400">Tipos Miel</p>
                 </div>
-                <p className="text-2xl sm:text-3xl font-bold text-orange-900">{stats.tiposMiel}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-slate-100">{stats.tiposMiel}</p>
               </div>
               
-              <div className="bg-gradient-to-br from-amber-50 to-orange-100 p-4 rounded-lg border-2 border-amber-300">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">📍</span>
-                  <p className="text-xs sm:text-sm font-medium text-amber-800">Estados</p>
+              <div className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl backdrop-blur-sm shadow-inner hover:bg-slate-800 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-5 h-5 text-amber-600" />
+                  <p className="text-xs sm:text-sm font-medium text-slate-400">Estados</p>
                 </div>
-                <p className="text-2xl sm:text-3xl font-bold text-amber-900">{stats.estados}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-slate-100">{stats.estados}</p>
               </div>
             </div>
           )}
 
           {/* Filtros y Búsqueda */}
-          <div className="mb-6 flex flex-col sm:flex-row gap-3">
+          <div className="mb-8 flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 w-5 h-5 pointer-events-none" />
               <Input
                 type="text"
-                placeholder="Buscar por nombre, producto o tipo de flor..."
+                placeholder="Buscar por nombre, producto o flor originaria..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-12 bg-slate-800/80 border-slate-700/50 text-slate-200 placeholder-slate-500 focus-visible:ring-amber-500 focus-visible:border-amber-500 shadow-inner rounded-xl h-12 backdrop-blur-sm"
               />
             </div>
-            <div className="sm:w-48">
+            <div className="sm:w-56">
               <select
                 value={filterEstado}
                 onChange={(e) => setFilterEstado(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-4 appearance-none hover:bg-slate-700 bg-slate-800/80 border border-slate-700/50 text-slate-200 rounded-xl h-12 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none shadow-inner backdrop-blur-sm transition-colors cursor-pointer"
               >
-                <option value="">Todos los estados</option>
+                <option value="">Cualquier estado</option>
                 {mexicoStates.map((state) => (
                   <option key={state.name} value={state.name}>
                     {state.name}
@@ -428,13 +441,13 @@ export function MapView() {
                 ))}
               </select>
             </div>
-            <div className="sm:w-48">
+            <div className="sm:w-56">
               <select
                 value={filterTipoMiel}
                 onChange={(e) => setFilterTipoMiel(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-4 appearance-none hover:bg-slate-700 bg-slate-800/80 border border-slate-700/50 text-slate-200 rounded-xl h-12 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none shadow-inner backdrop-blur-sm transition-colors cursor-pointer"
               >
-                <option value="">Todos los tipos de miel</option>
+                <option value="">Repertorio completo</option>
                 <option value="Multifloral">Multifloral</option>
                 <option value="Monofloral">Monofloral</option>
                 <option value="Orgánica">Orgánica</option>
@@ -444,26 +457,26 @@ export function MapView() {
           </div>
 
           {/* Mapa de Leaflet */}
-          <div className="relative w-full h-[500px] sm:h-[600px] rounded-xl overflow-hidden border-2 border-amber-300 shadow-lg mb-6">
-            <div ref={mapContainerRef} className="w-full h-full" />
+          <div className="relative w-full h-[500px] sm:h-[600px] rounded-3xl overflow-hidden border border-slate-700 shadow-2xl shadow-black/50 mb-10 bg-slate-950 isolate">
+            <div ref={mapContainerRef} className="w-full h-full -z-10" style={{ filter: 'invert(90%) hue-rotate(180deg) brightness(85%) contrast(85%)', mixBlendMode: 'screen' }} />
 
             {/* Leyenda */}
-            <div className="absolute bottom-4 left-4 bg-white p-3 sm:p-4 rounded-lg shadow-lg border-2 border-amber-200 z-[1000]">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🐝</span>
-                  <span className="text-xs sm:text-sm font-medium text-gray-700">
-                    Productor de Miel
+            <div className="absolute bottom-6 left-6 bg-slate-900/90 backdrop-blur-md p-5 rounded-2xl shadow-2xl border border-slate-700 z-[1000]">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Bug className="w-6 h-6 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                  <span className="text-sm font-semibold text-slate-200">
+                    Santuario Apícola
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-amber-400 rounded-full border-2 border-amber-600"></div>
-                  <span className="text-xs text-gray-600">
-                    Península de Yucatán
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full border-2 border-slate-900 shadow-[0_0_12px_rgba(245,158,11,0.6)]"></div>
+                  <span className="text-sm font-medium text-slate-400">
+                    Región Peninsular
                   </span>
                 </div>
-                <div className="text-xs text-gray-600 pt-2 border-t border-gray-200">
-                  {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'negocio' : 'negocios'}
+                <div className="text-xs font-bold text-slate-500 pt-4 border-t border-slate-800 uppercase tracking-widest text-center">
+                  {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'NEGOCIO' : 'NEGOCIOS'} EN LA RED
                 </div>
               </div>
             </div>
@@ -471,40 +484,56 @@ export function MapView() {
 
           {/* Lista de negocios */}
           {filteredBusinesses.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
+            <div className="mt-10">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-100 mb-6 tracking-tight">
                 Negocios Registrados
               </h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBusinesses.map((business) => {
                   const isPeninsula = ['Yucatán', 'Quintana Roo', 'Campeche'].includes(business.ubicacion.estado);
                   
                   return (
                     <div
                       key={business.id}
-                      className={`relative p-4 border-2 rounded-lg hover:bg-amber-50 transition-all group ${
-                        isPeninsula ? 'border-amber-400 bg-amber-50/50' : 'border-amber-200'
+                      className={`relative p-6 border rounded-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-2xl cursor-default group backdrop-blur-md overflow-hidden ${
+                        isPeninsula ? 'border-amber-500/50 bg-amber-950/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'border-slate-700/50 bg-slate-800/40 shadow-lg'
                       }`}
                     >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                       <button
-                        onClick={() => setSelectedBusiness(business)}
-                        className="text-left w-full"
+                        onClick={() => {
+                          setSelectedBusiness(business);
+                          if (user?.id !== business.userId) {
+                            fetch(`http://localhost:5001/api/negocios/${business.id}/interact`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ action: 'view' })
+                            }).catch(() => {});
+                          }
+                        }}
+                        className="text-left w-full relative z-10"
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-bold text-gray-900 flex-1 pr-16">{business.nombre}</h4>
-                          <span className="text-2xl flex-shrink-0">🐝</span>
+                        <div className="flex items-center gap-4 mb-4">
+                          {business.logoUrl ? (
+                            <img src={business.logoUrl} alt="Logo" className="w-12 h-12 rounded-full object-cover border border-slate-600 shadow-md flex-shrink-0" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center shadow-inner border border-slate-600 flex-shrink-0">
+                               <Bug className="w-6 h-6 text-amber-500 drop-shadow-sm" />
+                            </div>
+                          )}
+                          <h4 className="font-bold text-slate-100 text-lg leading-tight flex-1 pr-12 group-hover:text-amber-400 transition-colors">{business.nombre}</h4>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-                          <MapPin className="w-4 h-4" />
+                        <div className="flex items-center gap-1 text-sm text-slate-400 mb-3">
+                          <MapPin className="w-4 h-4 text-amber-500" />
                           {business.ubicacion.estado}
                           {isPeninsula && (
-                            <span className="ml-2 px-2 py-0.5 bg-amber-200 text-amber-900 text-xs rounded-full font-medium">
+                            <span className="ml-3 px-2.5 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs rounded-full font-semibold tracking-wide">
                               Península
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {business.descripcion || `Miel de ${business.florMiel}`}
+                        <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
+                          {business.descripcion || `Miel premium de ${business.florMiel}`}
                         </p>
                       </button>
                       
@@ -578,8 +607,14 @@ export function MapView() {
             <>
               <DialogHeader>
                 <div className="flex items-start justify-between">
-                  <DialogTitle className="text-2xl font-bold flex items-center gap-2 flex-1">
-                    <Bug className="w-7 h-7 text-amber-500" />
+                  <DialogTitle className="text-2xl font-bold flex items-center gap-3 flex-1">
+                    {selectedBusiness.logoUrl ? (
+                      <img src={selectedBusiness.logoUrl} alt="Logo" className="w-12 h-12 rounded-full object-cover shadow-sm border-2 border-amber-200" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shadow-sm border border-amber-200">
+                        <Bug className="w-6 h-6 text-amber-500" />
+                      </div>
+                    )}
                     {selectedBusiness.nombre}
                   </DialogTitle>
                   {isOwner(selectedBusiness) && (
@@ -627,15 +662,17 @@ export function MapView() {
 
                 {/* Productos */}
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Productos</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedBusiness.productos.map((producto, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm"
-                      >
-                        {producto}
-                      </span>
+                  <h4 className="font-semibold text-gray-900 mb-3">Catálogo de Productos</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {selectedBusiness.productos.map((producto: any, index) => (
+                      <div key={index} className="flex justify-between items-center bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl shadow-sm hover:border-amber-300 transition-colors">
+                        <span className="font-medium text-gray-800 text-sm">
+                          {typeof producto === 'string' ? producto : producto.nombre}
+                        </span>
+                        <span className="font-bold text-amber-600 text-sm">
+                          {typeof producto === 'string' ? '' : producto.precio}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -663,11 +700,14 @@ export function MapView() {
                       </a>
                     </div>
                     {selectedBusiness.contacto.telefono && (
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <Phone className="w-5 h-5 text-amber-500" />
-                        <a href={`tel:${selectedBusiness.contacto.telefono}`} className="hover:underline">
-                          {selectedBusiness.contacto.telefono}
-                        </a>
+                      <div className="flex items-center gap-2 text-gray-700 mt-2">
+                        <Button
+                          onClick={() => handleContactWhatsapp(selectedBusiness.contacto.telefono!, selectedBusiness.id)}
+                          className="w-full bg-[#25D366] hover:bg-[#1DA851] text-white shadow-md flex items-center gap-2"
+                        >
+                          <Phone className="w-5 h-5" />
+                          Contactar WhatsApp
+                        </Button>
                       </div>
                     )}
                     {selectedBusiness.contacto.sitioWeb && (
@@ -677,9 +717,35 @@ export function MapView() {
                           href={selectedBusiness.contacto.sitioWeb}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:underline"
+                          className="hover:underline text-blue-600"
                         >
-                          {selectedBusiness.contacto.sitioWeb}
+                          Sitio Web Oficial
+                        </a>
+                      </div>
+                    )}
+                    {selectedBusiness.contacto.facebook && (
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Globe className="w-5 h-5 text-blue-600" />
+                        <a
+                          href={selectedBusiness.contacto.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline text-blue-600"
+                        >
+                          Facebook
+                        </a>
+                      </div>
+                    )}
+                    {selectedBusiness.contacto.instagram && (
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Globe className="w-5 h-5 text-pink-600" />
+                        <a
+                          href={selectedBusiness.contacto.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline text-pink-600"
+                        >
+                          Instagram
                         </a>
                       </div>
                     )}
@@ -701,12 +767,49 @@ export function MapView() {
       {showAddForm && (
         <ApicultorFormModal
           onClose={() => setShowAddForm(false)}
-          onSave={(newBusiness) => {
-            const updatedBusinesses = [...businesses, newBusiness];
-            setBusinesses(updatedBusinesses);
-            localStorage.setItem('businesses', JSON.stringify(updatedBusinesses));
-            setShowAddForm(false);
-            toast.success('¡Negocio registrado exitosamente!');
+          onSave={async (businessData) => {
+            try {
+              const res = await fetch('http://localhost:5001/api/negocios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  usuario_id: user?.id,
+                  nombre: businessData.nombre,
+                  logo_url: businessData.logoUrl,
+                  productos: businessData.productos,
+                  tipoMiel: businessData.tipoMiel,
+                  florOrigen: businessData.florMiel,
+                  estado: businessData.ubicacion.estado,
+                  coordenadas: businessData.ubicacion,
+                  contacto: businessData.contacto,
+                  descripcion: businessData.descripcion
+                })
+              });
+              
+              if (!res.ok) throw new Error('Error en API');
+              const data = await res.json();
+              
+              const newBusiness: Business = {
+                id: data.id.toString(),
+                userId: data.usuario_id.toString(),
+                nombre: data.nombre,
+                logoUrl: data.logo_url || undefined,
+                productos: typeof data.productos === 'string' ? JSON.parse(data.productos) : data.productos,
+                tipoMiel: data.tipo_miel,
+                florMiel: data.flor_origen,
+                ubicacion: typeof data.coordenadas === 'string' ? JSON.parse(data.coordenadas) : data.coordenadas,
+                contacto: typeof data.contacto === 'string' ? JSON.parse(data.contacto) : data.contacto,
+                descripcion: data.descripcion,
+                fechaCreacion: data.creado_en
+              };
+
+              setBusinesses([...businesses, newBusiness]);
+              setShowAddForm(false);
+              toast.success('¡Negocio registrado exitosamente!');
+            } catch (err) {
+              console.error(err);
+              toast.error('Error al registrar negocio');
+            }
           }}
           userId={user?.id || ''}
         />
@@ -719,15 +822,53 @@ export function MapView() {
             setShowEditForm(false);
             setSelectedBusiness(null);
           }}
-          onSave={(updatedBusiness) => {
-            const updatedBusinesses = businesses.map(b => 
-              b.id === updatedBusiness.id ? updatedBusiness : b
-            );
-            setBusinesses(updatedBusinesses);
-            localStorage.setItem('businesses', JSON.stringify(updatedBusinesses));
-            setShowEditForm(false);
-            setSelectedBusiness(null);
-            toast.success('¡Negocio actualizado exitosamente!');
+          onSave={async (businessData) => {
+            try {
+              const res = await fetch(`http://localhost:5001/api/negocios/${businessData.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  nombre: businessData.nombre,
+                  logo_url: businessData.logoUrl,
+                  productos: businessData.productos,
+                  tipoMiel: businessData.tipoMiel,
+                  florOrigen: businessData.florMiel,
+                  estado: businessData.ubicacion.estado,
+                  coordenadas: businessData.ubicacion,
+                  contacto: businessData.contacto,
+                  descripcion: businessData.descripcion
+                })
+              });
+              
+              if (!res.ok) throw new Error('Error en API');
+              const data = await res.json();
+              
+              const updatedBusiness: Business = {
+                id: data.id.toString(),
+                userId: data.usuario_id.toString(),
+                nombre: data.nombre,
+                logoUrl: data.logo_url || undefined,
+                productos: typeof data.productos === 'string' ? JSON.parse(data.productos) : data.productos,
+                tipoMiel: data.tipo_miel,
+                florMiel: data.flor_origen,
+                ubicacion: typeof data.coordenadas === 'string' ? JSON.parse(data.coordenadas) : data.coordenadas,
+                contacto: typeof data.contacto === 'string' ? JSON.parse(data.contacto) : data.contacto,
+                descripcion: data.descripcion,
+                fechaCreacion: data.creado_en
+              };
+
+              const updatedBusinesses = businesses.map(b => 
+                b.id === updatedBusiness.id ? updatedBusiness : b
+              );
+              
+              setBusinesses(updatedBusinesses);
+              setShowEditForm(false);
+              setSelectedBusiness(null);
+              toast.success('¡Negocio actualizado exitosamente!');
+            } catch (err) {
+              console.error(err);
+              toast.error('Error al actualizar negocio');
+            }
           }}
           userId={user?.id || ''}
           existingBusiness={selectedBusiness}
@@ -748,7 +889,8 @@ interface ApicultorFormModalProps {
 function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: ApicultorFormModalProps) {
   const [formData, setFormData] = useState({
     nombre: existingBusiness?.nombre || '',
-    productos: existingBusiness?.productos || [] as string[],
+    logoUrl: existingBusiness?.logoUrl || '',
+    productos: existingBusiness?.productos || [],
     tipoMiel: existingBusiness?.tipoMiel || '',
     florMiel: existingBusiness?.florMiel || '',
     estado: existingBusiness?.ubicacion.estado || '',
@@ -756,22 +898,38 @@ function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: Apicu
     telefono: existingBusiness?.contacto.telefono || '',
     direccion: existingBusiness?.contacto.direccion || '',
     sitioWeb: existingBusiness?.contacto.sitioWeb || '',
+    facebook: existingBusiness?.contacto.facebook || '',
+    instagram: existingBusiness?.contacto.instagram || '',
     descripcion: existingBusiness?.descripcion || '',
   });
 
-  const [newProducto, setNewProducto] = useState('');
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const productosComunes = [
-    'Miel pura',
-    'Polen',
-    'Propóleo',
-    'Jalea real',
-    'Cera de abeja',
-    'Velas de cera',
-    'Jabones naturales',
-    'Cremas naturales',
-    'Shampoo de miel',
-  ];
+    const data = new FormData();
+    data.append('imagen', file);
+    data.append('type', 'negocios');
+
+    try {
+      const res = await fetch('http://localhost:5001/api/upload', {
+        method: 'POST',
+        body: data,
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setFormData({ ...formData, logoUrl: result.url });
+        toast.success('Logo subido exitosamente');
+      } else {
+        toast.error(result.error || 'Error al subir imagen');
+      }
+    } catch (err) {
+      toast.error('Error de conexión al subir imagen');
+    }
+  };
+
+  const [newProductoNombre, setNewProductoNombre] = useState('');
+  const [newProductoPrecio, setNewProductoPrecio] = useState('');
 
   const tiposMiel = [
     'Multifloral',
@@ -780,17 +938,31 @@ function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: Apicu
     'Convencional',
   ];
 
-  const handleAddProducto = (producto: string) => {
-    if (producto && !formData.productos.includes(producto)) {
-      setFormData({ ...formData, productos: [...formData.productos, producto] });
+  const handleAddProducto = () => {
+    if (newProductoNombre && newProductoPrecio) {
+      const exists = formData.productos.find((p: any) => 
+        (typeof p === 'string' ? p : p.nombre) === newProductoNombre
+      );
+      if (!exists) {
+        setFormData({ 
+          ...formData, 
+          // @ts-ignore
+          productos: [...formData.productos, { nombre: newProductoNombre, precio: newProductoPrecio }] 
+        });
+        setNewProductoNombre('');
+        setNewProductoPrecio('');
+      } else {
+        toast.error('Este producto ya existe en el catálogo');
+      }
     }
-    setNewProducto('');
   };
 
-  const handleRemoveProducto = (producto: string) => {
+  const handleRemoveProducto = (productoNombre: string) => {
     setFormData({
       ...formData,
-      productos: formData.productos.filter(p => p !== producto),
+      productos: formData.productos.filter((p: any) => 
+        (typeof p === 'string' ? p : p.nombre) !== productoNombre
+      ),
     });
   };
 
@@ -826,8 +998,11 @@ function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: Apicu
         telefono: formData.telefono || undefined,
         direccion: formData.direccion || undefined,
         sitioWeb: formData.sitioWeb || undefined,
+        facebook: formData.facebook || undefined,
+        instagram: formData.instagram || undefined,
       },
       descripcion: formData.descripcion || undefined,
+      logoUrl: formData.logoUrl || undefined,
       fechaCreacion: existingBusiness?.fechaCreacion || new Date().toISOString(),
     };
 
@@ -854,6 +1029,28 @@ function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: Apicu
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          {/* Logo del Negocio */}
+          <div className="flex items-center gap-4">
+            {formData.logoUrl ? (
+              <img src={formData.logoUrl} alt="Logo" className="w-16 h-16 rounded-full object-cover border-2 border-amber-200" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 border border-amber-200">
+                <Bug className="w-8 h-8" />
+              </div>
+            )}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Logo o Foto del Apiario
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+              />
+            </div>
+          </div>
+
           {/* Nombre del negocio */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -872,63 +1069,62 @@ function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: Apicu
           {/* Productos */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Productos Derivados de la Miel *
+              Catálogo de Productos y Precios *
             </label>
             <div className="space-y-3">
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-col sm:flex-row">
                 <input
                   type="text"
-                  value={newProducto}
-                  onChange={(e) => setNewProducto(e.target.value)}
+                  value={newProductoNombre}
+                  onChange={(e) => setNewProductoNombre(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Ej: Miel de 500ml"
+                />
+                <input
+                  type="text"
+                  value={newProductoPrecio}
+                  onChange={(e) => setNewProductoPrecio(e.target.value)}
+                  className="sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Precio Ej: $150 MXN"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      handleAddProducto(newProducto);
+                      handleAddProducto();
                     }
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                  placeholder="Escribe un producto..."
                 />
                 <Button
                   type="button"
-                  onClick={() => handleAddProducto(newProducto)}
+                  onClick={handleAddProducto}
                   className="bg-amber-500 hover:bg-amber-600"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {productosComunes.map((producto) => (
-                  <button
-                    key={producto}
-                    type="button"
-                    onClick={() => handleAddProducto(producto)}
-                    disabled={formData.productos.includes(producto)}
-                    className="px-3 py-1 text-sm border border-amber-300 rounded-full hover:bg-amber-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    + {producto}
-                  </button>
-                ))}
-              </div>
 
               {formData.productos.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-amber-50 rounded-lg">
-                  {formData.productos.map((producto) => (
-                    <span
-                      key={producto}
-                      className="flex items-center gap-1 px-3 py-1 bg-amber-200 text-amber-900 rounded-full text-sm"
-                    >
-                      {producto}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProducto(producto)}
-                        className="hover:text-red-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
+                <div className="flex flex-col gap-2 p-3 bg-amber-50 rounded-lg max-h-48 overflow-y-auto">
+                  {formData.productos.map((producto: any, i) => {
+                    const isStr = typeof producto === 'string';
+                    const nombre = isStr ? producto : producto.nombre;
+                    const precio = isStr ? '' : producto.precio;
+
+                    return (
+                      <div key={i} className="flex items-center justify-between bg-white px-4 py-2 rounded shadow-sm border border-amber-100">
+                        <div>
+                          <span className="font-semibold text-gray-800 text-sm">{nombre}</span>
+                          {precio && <span className="text-amber-600 font-bold ml-2 text-sm">{precio}</span>}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProducto(nombre)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1047,6 +1243,33 @@ function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: Apicu
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   placeholder="https://www.ejemplo.com"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Facebook
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.facebook}
+                    onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://facebook.com/apiario..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Instagram
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.instagram}
+                    onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                    className="w-full px-4 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    placeholder="https://instagram.com/apiario..."
+                  />
+                </div>
               </div>
 
               <div>

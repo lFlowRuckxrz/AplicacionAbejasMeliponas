@@ -6,8 +6,9 @@ Una aplicación web completa para conectar productores apícolas con clientes en
 
 ### 🔐 Sistema de Autenticación
 - Registro de nuevos usuarios con validación
-- Inicio de sesión seguro
-- Persistencia de sesión con localStorage
+- Inicio de sesión seguro con contraseñas encriptadas (bcrypt)
+- Backend en Node.js/Express con base de datos MySQL
+- Persistencia de sesión en cliente con localStorage
 
 ### 👥 Sistema de Roles
 - **Apicultor**: Puede registrar y gestionar negocios apícolas
@@ -47,17 +48,45 @@ Una aplicación web completa para conectar productores apícolas con clientes en
 - Colores temáticos (ámbar/amarillo/naranja)
 - Iconos intuitivos con Lucide React
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Arquitectura y Tecnologías
 
+### Frontend
 - **React 18** con TypeScript
 - **React Router** para navegación
 - **Tailwind CSS** para estilos
 - **Shadcn/ui** para componentes
 - **Lucide React** para iconos
 - **Sonner** para notificaciones toast
-- **LocalStorage** para persistencia de datos
 
-## 🚀 Cómo Usar
+### Backend
+- **Node.js** con **Express** para la API REST
+- **MySQL** como base de datos relacional
+- **Bcryptjs** para el hash seguro de contraseñas
+- **Multer** para la subida de imágenes
+
+## 🚀 Instalación y Ejecución Local
+
+El proyecto está compuesto por una aplicación web con frontend y un servicio backend para su ejecución local. Para ejecutarlo:
+
+### 1. Base de Datos (MySQL)
+Asegúrate de tener un servidor MySQL corriendo.
+
+### 2. Ejecutar el Backend
+```bash
+cd backend
+npm install
+# Crea un archivo .env basándote en .env.example
+node server.js # o npm run dev si usas nodemon
+```
+
+### 3. Ejecutar el Frontend
+Abre otra terminal en la raíz del proyecto:
+```bash
+npm install
+npm run dev
+```
+
+## 📋 Guía de Uso
 
 ### Para Apicultores:
 1. Regístrate con tu correo electrónico
@@ -102,14 +131,14 @@ Una aplicación web completa para conectar productores apícolas con clientes en
 
 ## 🔒 Seguridad
 
-- Validación de formularios
-- Autenticación basada en sesión
+- Validación de formularios en frontend y backend
+- Contraseñas protegidas mediante Hash (Bcrypt) en la base de datos
 - Los usuarios solo pueden editar/eliminar sus propios negocios
-- Almacenamiento seguro en localStorage (para prototipo)
+- Persistencia de estado en cliente con validación contra la API
 
 ## 🌟 Próximas Mejoras Sugeridas
 
-- Integración con base de datos real (Supabase)
+- Implementación de JSON Web Tokens (JWT) para sesiones más seguras
 - Geolocalización precisa con coordenadas GPS
 - Fotos de productos
 - Sistema de calificaciones y reseñas

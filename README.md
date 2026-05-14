@@ -69,14 +69,15 @@ Una aplicación web completa para conectar productores apícolas con clientes en
 El proyecto está compuesto por una aplicación web con frontend y un servicio backend para su ejecución local. Para ejecutarlo:
 
 ### 1. Base de Datos (MySQL)
-Asegúrate de tener un servidor MySQL corriendo.
+Asegúrate de tener un servidor MySQL 8 corriendo.
+Crea la base de datos necesaria para el proyecto.
 
 ### 2. Ejecutar el Backend
 ```bash
 cd backend
 npm install
 # Crea un archivo .env basándote en .env.example
-node server.js # o npm run dev si usas nodemon
+npm start
 ```
 
 ### 3. Ejecutar el Frontend
@@ -85,6 +86,15 @@ Abre otra terminal en la raíz del proyecto:
 npm install
 npm run dev
 ```
+
+## ☁️ Preparación para Despliegue en la Nube
+
+El proyecto está preparado para ser desplegado utilizando **Docker** y **Docker Compose**.
+
+Para el encargado de infraestructura o despliegue:
+1. Revisa la carpeta `deploy/`.
+2. Lee el archivo `deploy/README.md` para encontrar las instrucciones paso a paso.
+3. Se proporcionan ejemplos como `docker-compose.example.yml` y `.env.example` para que puedas levantar el entorno (Base de datos MySQL, Backend Node.js, Frontend Vite + Nginx) en cualquier servidor sin conflictos.
 
 ## 📋 Guía de Uso
 

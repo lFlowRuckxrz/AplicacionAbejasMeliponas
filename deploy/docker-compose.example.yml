@@ -1,0 +1,56 @@
+services:
+  backend:
+    build: ../backend
+    container_name: abejas-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - abejas_network
+
+  frontend:
+    build: ../
+    container_name: abejas-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - abejas_network
+
+  db:
+    image: mysql:8.0
+    container_name: abejas-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - abejas_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - abejas_network
+
+volumes:
+  abejas_db_data:
+
+networks:
+  abejas_network:
+    driver: bridge

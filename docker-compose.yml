@@ -30,6 +30,7 @@ services:
     image: mysql:8.0
     container_name: melihub-db
     restart: unless-stopped
+    env_file: ./backend/.env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${DB_NAME:-abejas_meliponas}

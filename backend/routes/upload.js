@@ -25,7 +25,8 @@ router.post('/', upload.single('imagen'), (req, res) => {
   }
   
   const folder = req.body.type === 'perfil' ? 'profiles' : 'negocios';
-  const url = `http://localhost:5000/uploads/${folder}/${req.file.filename}`;
+  const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+  const url = `${baseUrl}/uploads/${folder}/${req.file.filename}`;
   
   res.json({ url });
 });

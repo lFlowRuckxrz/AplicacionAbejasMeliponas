@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router';
 import L from 'leaflet';
 import { useAuth } from '../contexts/AuthContext';
@@ -64,7 +65,7 @@ export function MapView() {
     // Fetch desde el backend
     const fetchBusinesses = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/negocios');
+        const res = await fetch(`${API_BASE_URL}/api/negocios`);
         const data = await res.json();
         
         // Mapear los datos de MySQL al tipo Business del Frontend
@@ -235,7 +236,7 @@ export function MapView() {
       setSelectedBusiness(business);
       if (user?.id !== business.userId) {
         try {
-          await fetch(`http://localhost:5001/api/negocios/${business.id}/interact`, {
+          await fetch(`${API_BASE_URL}/api/negocios/${business.id}/interact`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'view' })
@@ -267,7 +268,7 @@ export function MapView() {
   const handleContactWhatsapp = async (phone: string, businessId: string) => {
     if (user?.id !== businesses.find(b => b.id === businessId)?.userId) {
       try {
-        await fetch(`http://localhost:5001/api/negocios/${businessId}/interact`, {
+        await fetch(`${API_BASE_URL}/api/negocios/${businessId}/interact`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'contact' })
@@ -291,7 +292,7 @@ export function MapView() {
   const handleDeleteBusiness = async (businessId: string) => {
     if (confirm('¿Estás seguro de que deseas eliminar este negocio?')) {
       try {
-        await fetch(`http://localhost:5001/api/negocios/${businessId}`, { method: 'DELETE' });
+        await fetch(`${API_BASE_URL}/api/negocios/${businessId}`, { method: 'DELETE' });
         const updatedBusinesses = businesses.filter(b => b.id !== businessId);
         setBusinesses(updatedBusinesses);
         setSelectedBusiness(null);
@@ -504,7 +505,7 @@ export function MapView() {
                         onClick={() => {
                           setSelectedBusiness(business);
                           if (user?.id !== business.userId) {
-                            fetch(`http://localhost:5001/api/negocios/${business.id}/interact`, {
+                            fetch(`${API_BASE_URL}/api/negocios/${business.id}/interact`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ action: 'view' })
@@ -769,7 +770,7 @@ export function MapView() {
           onClose={() => setShowAddForm(false)}
           onSave={async (businessData) => {
             try {
-              const res = await fetch('http://localhost:5001/api/negocios', {
+              const res = await fetch(`${API_BASE_URL}/api/negocios`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -824,7 +825,7 @@ export function MapView() {
           }}
           onSave={async (businessData) => {
             try {
-              const res = await fetch(`http://localhost:5001/api/negocios/${businessData.id}`, {
+              const res = await fetch(`${API_BASE_URL}/api/negocios/${businessData.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -912,7 +913,7 @@ function ApicultorFormModal({ onClose, onSave, userId, existingBusiness }: Apicu
     data.append('type', 'negocios');
 
     try {
-      const res = await fetch('http://localhost:5001/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: data,
       });

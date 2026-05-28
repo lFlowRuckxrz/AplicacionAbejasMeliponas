@@ -1,0 +1,56 @@
+services:
+  backend:
+    build: ./backend
+    container_name: melihub-backend
+    restart: unless-stopped
+    env_file: ./backend/.env
+    ports:
+      - "5001:5001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - melihub_network
+
+  frontend:
+    build:
+      context: .
+      args:
+        - VITE_API_URL=http://localhost:5001
+    container_name: melihub-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - melihub_network
+
+  db:
+    image: mysql:8.0
+    container_name: melihub-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-abejas_meliponas}
+      MYSQL_USER: ${DB_USER:-melihub_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-melihub_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - melihub_db_data:/var/lib/mysql
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - melihub_network
+
+volumes:
+  melihub_db_data:
+
+networks:
+  melihub_network:
+    driver: bridge

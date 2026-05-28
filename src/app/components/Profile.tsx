@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
@@ -30,7 +31,7 @@ export function Profile() {
 
   useEffect(() => {
     if (user.role === 'apicultor') {
-      fetch('http://localhost:5001/api/negocios')
+      fetch(`${API_BASE_URL}/api/negocios`)
         .then(res => res.json())
         .then(data => {
           const mine = data.filter((b: any) => b.usuario_id === user.id);
@@ -50,14 +51,14 @@ export function Profile() {
     data.append('type', 'perfil');
 
     try {
-      const uploadRes = await fetch('http://localhost:5001/api/upload', {
+      const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: data,
       });
       const uploadResult = await uploadRes.json();
       if (!uploadRes.ok) throw new Error(uploadResult.error || 'Error al subir imagen');
 
-      const profileRes = await fetch('http://localhost:5001/api/auth/profile', {
+      const profileRes = await fetch(`${API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: user.id, foto_perfil: uploadResult.url })

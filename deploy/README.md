@@ -33,6 +33,6 @@ La aplicación se compone de 3 contenedores principales:
 ## Consideraciones Adicionales
 *   **Migraciones/Semillas (Seeders)**: Una vez que el entorno esté corriendo, es posible que necesites ejecutar tu script de `seed.js` en el backend para poblar la base de datos inicial:
     ```bash
-    docker exec -it abejas-backend node seed.js
+    docker exec -it abejas-backend node database/seed.js
     ```
 *   **Proxy Inverso**: En producción, probablemente querrás tener un Nginx o Traefik principal manejando certificados SSL (HTTPS) que redirija el tráfico al puerto 80 del contenedor del `frontend` o al puerto `3001` del `backend`.

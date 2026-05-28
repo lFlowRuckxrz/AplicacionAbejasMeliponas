@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db');
 const bcrypt = require('bcryptjs'); // Or just store plain text if the app doesn't enforce hash everywhere, but auth.js uses bcrypt.
   
 async function seedDemo() {

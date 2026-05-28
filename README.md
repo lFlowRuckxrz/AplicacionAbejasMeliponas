@@ -1,162 +1,192 @@
-# 🐝 Apiario México
+# 🐝 MeliHub - Apiario México
 
-Una aplicación web completa para conectar productores apícolas con clientes en la República Mexicana.
-
-## ✨ Características Principales
-
-### 🔐 Sistema de Autenticación
-- Registro de nuevos usuarios con validación
-- Inicio de sesión seguro con contraseñas encriptadas (bcrypt)
-- Backend en Node.js/Express con base de datos MySQL
-- Persistencia de sesión en cliente con localStorage
-
-### 👥 Sistema de Roles
-- **Apicultor**: Puede registrar y gestionar negocios apícolas
-- **Cliente**: Puede explorar y descubrir productores de miel
-
-### 🗺️ Mapa Interactivo
-- Visualización del mapa de México con enfoque en estados del sur
-- Marcadores interactivos con iconos de abejas 🐝
-- Tooltips al pasar el mouse sobre los marcadores
-- Estados disponibles: Chiapas, Oaxaca, Tabasco, Campeche, Yucatán, Quintana Roo, Veracruz, Guerrero
-
-### 📝 Gestión de Negocios (Apicultores)
-- Registro completo de negocios apícolas con:
-  - Nombre del negocio
-  - Productos derivados de la miel (predefinidos + personalizados)
-  - Tipo de miel (Multifloral, Monofloral, Orgánica, Convencional)
-  - Flor de origen
-  - Ubicación por estado
-  - Información de contacto completa
-  - Descripción del negocio
-- Edición de negocios propios
-- Eliminación de negocios propios
-- Vista de tarjetas con información resumida
-
-### 🔍 Búsqueda y Filtros
-- Búsqueda por nombre, producto o tipo de flor
-- Filtrado por estado
-- Resultados en tiempo real
-
-### 📱 Diseño Responsivo
-- Totalmente adaptable a móviles, tablets y escritorio
-- Interfaz optimizada para diferentes tamaños de pantalla
-
-### 🎨 Experiencia de Usuario
-- Notificaciones toast para todas las acciones
-- Animaciones suaves y transiciones
-- Colores temáticos (ámbar/amarillo/naranja)
-- Iconos intuitivos con Lucide React
-
-## 🛠️ Arquitectura y Tecnologías
-
-### Frontend
-- **React 18** con TypeScript
-- **React Router** para navegación
-- **Tailwind CSS** para estilos
-- **Shadcn/ui** para componentes
-- **Lucide React** para iconos
-- **Sonner** para notificaciones toast
-
-### Backend
-- **Node.js** con **Express** para la API REST
-- **MySQL** como base de datos relacional
-- **Bcryptjs** para el hash seguro de contraseñas
-- **Multer** para la subida de imágenes
-
-## 🚀 Instalación y Ejecución Local
-
-El proyecto está compuesto por una aplicación web con frontend y un servicio backend para su ejecución local. Para ejecutarlo:
-
-### 1. Base de Datos (MySQL)
-Asegúrate de tener un servidor MySQL 8 corriendo.
-Crea la base de datos necesaria para el proyecto.
-
-### 2. Ejecutar el Backend
-```bash
-cd backend
-npm install
-# Crea un archivo .env basándote en .env.example
-npm start
-```
-
-### 3. Ejecutar el Frontend
-Abre otra terminal en la raíz del proyecto:
-```bash
-npm install
-npm run dev
-```
-
-## ☁️ Preparación para Despliegue en la Nube
-
-El proyecto está preparado para ser desplegado utilizando **Docker** y **Docker Compose**.
-
-Para el encargado de infraestructura o despliegue:
-1. Revisa la carpeta `deploy/`.
-2. Lee el archivo `deploy/README.md` para encontrar las instrucciones paso a paso.
-3. Se proporcionan ejemplos como `docker-compose.example.yml` y `.env.example` para que puedas levantar el entorno (Base de datos MySQL, Backend Node.js, Frontend Vite + Nginx) en cualquier servidor sin conflictos.
-
-## 📋 Guía de Uso
-
-### Para Apicultores:
-1. Regístrate con tu correo electrónico
-2. Selecciona el rol "Apicultor"
-3. Haz clic en "Agregar Negocio"
-4. Completa el formulario con la información de tu apiario
-5. Tu negocio aparecerá en el mapa para que los clientes lo descubran
-6. Puedes editar o eliminar tus negocios en cualquier momento
-
-### Para Clientes:
-1. Regístrate con tu correo electrónico
-2. Selecciona el rol "Cliente"
-3. Explora el mapa interactivo
-4. Haz clic en los marcadores de abejas para ver detalles
-5. Contacta directamente a los productores
-
-## 📊 Estructura de Datos
-
-### Usuario
-- ID único
-- Correo electrónico
-- Rol (apicultor/cliente)
-
-### Negocio
-- ID único
-- Usuario propietario
-- Nombre
-- Productos (array)
-- Tipo de miel
-- Flor de origen
-- Ubicación (estado, coordenadas)
-- Contacto (correo, teléfono, dirección, sitio web)
-- Descripción
-- Fecha de creación
-
-## 🎯 Casos de Uso
-
-1. **Productor Local**: Un apicultor en Yucatán puede mostrar su miel de azahar orgánica y productos derivados
-2. **Cliente Buscador**: Alguien en Oaxaca puede encontrar productores locales y contactarlos directamente
-3. **Transparencia**: Los clientes pueden conocer el origen y tipo de miel antes de comprar
-4. **Red de Apicultores**: Visualización de la distribución de productores en el sur de México
-
-## 🔒 Seguridad
-
-- Validación de formularios en frontend y backend
-- Contraseñas protegidas mediante Hash (Bcrypt) en la base de datos
-- Los usuarios solo pueden editar/eliminar sus propios negocios
-- Persistencia de estado en cliente con validación contra la API
-
-## 🌟 Próximas Mejoras Sugeridas
-
-- Implementación de JSON Web Tokens (JWT) para sesiones más seguras
-- Geolocalización precisa con coordenadas GPS
-- Fotos de productos
-- Sistema de calificaciones y reseñas
-- Chat directo entre clientes y productores
-- Marketplace integrado
-- Certificaciones orgánicas
-- Blog sobre apicultura
+Una aplicación web completa y moderna diseñada para conectar a productores apícolas (en especial de abejas meliponas de la Península de Yucatán y el sureste de México) con clientes interesados. El sistema cuenta con un mapa interactivo, sistema de roles (Apicultor y Cliente), gestión de catálogo de productos, estadísticas de interacción (clics y visitas) y subida de imágenes en tiempo real.
 
 ---
 
-Desarrollado con 🐝 para apoyar a los productores de miel mexicanos
+## 🏗️ Arquitectura del Sistema
+
+El proyecto está diseñado bajo una arquitectura de **desacoplamiento completo (Decoupled Architecture)**:
+
+```mermaid
+graph TD
+    Client[📱 Cliente / Navegador Web] <--> |React Router / Fetch API| FE[🎨 Frontend: React + Vite + TS]
+    Client <--> |Peticiones HTTP / JSON / CORS| BE[🖥️ Backend: Node.js + Express]
+    BE <--> |Conexión MySQL Pool| DB[(🗄️ Base de Datos: MySQL 8)]
+    BE --> |Multer File System| Storage[📁 Almacenamiento local: /uploads]
+```
+
+* **Frontend**: React 18, TypeScript, Tailwind CSS, Leaflet Maps, Lucide Icons, Sonner (Toasts).
+* **Backend**: Node.js, Express, Multer (Subida de fotos), Bcrypt.js (Encriptación).
+* **Base de Datos**: MySQL 8.
+
+---
+
+## 📋 Requisitos Previos
+
+Antes de comenzar, asegúrate de tener instalado:
+* **Node.js**: Versión `18.x` o superior.
+* **NPM**: Versión `9.x` o superior.
+* **MySQL Server**: Versión `8.0` o superior (puede ser a través de XAMPP, MAMP o standalone).
+* **Docker / Docker Compose**: *(Opcional, solo si deseas desplegar en contenedores)*.
+
+---
+
+## 🚀 Guía de Instalación Paso a Paso
+
+### 1. Base de Datos (MySQL)
+
+1. Abre tu gestor de base de datos MySQL (phpMyAdmin, DBeaver, MySQL Workbench o consola).
+2. Asegúrate de que el servidor MySQL esté **encendido** (en puerto `3306` por defecto).
+3. El script creará la base de datos `abejas_meliponas` de manera automática al ejecutar la migración. Si deseas hacer la creación manual, ejecuta:
+   ```sql
+   CREATE DATABASE abejas_meliponas;
+   ```
+
+### 2. Configurar y Ejecutar el Backend (Servidor)
+
+Navega a la carpeta del backend, instala las dependencias y realiza las migraciones iniciales:
+
+```bash
+# 1. Entrar a la carpeta del backend
+cd backend
+
+# 2. Instalar dependencias necesarias
+npm install
+
+# 3. Crear el archivo de configuración .env
+# Copia el archivo de ejemplo y rellena los datos de tu servidor MySQL
+cp .env.example .env
+```
+
+#### Configurar el archivo `.env` del Backend:
+Abre el archivo `backend/.env` y edita las siguientes variables con tus credenciales:
+```env
+DB_HOST=localhost       # Dirección del servidor de Base de Datos
+DB_USER=root            # Tu usuario de MySQL
+DB_PASSWORD=tu_password # Tu contraseña de MySQL (vacío en XAMPP por defecto)
+DB_NAME=abejas_meliponas# Nombre de la Base de Datos
+PORT=5001               # Puerto donde correrá el backend
+```
+
+#### Ejecutar Migraciones y Poblado de Datos (Seeders):
+Para crear las tablas y rellenar la base de datos con apiarios de prueba:
+```bash
+# 4. Crear tablas automáticamente en la DB
+npm run db:migrate
+
+# 5. Rellenar con información de demostración (Apiarios demo)
+npm run db:seed
+
+# 6. Iniciar el servidor backend en modo desarrollo
+npm start
+```
+*Si todo está bien, verás el mensaje: `Server is running on port 5001` y `Connecting to MySQL...`.*
+
+---
+
+### 3. Configurar y Ejecutar el Frontend (Cliente)
+
+Abre una **nueva terminal** en la raíz del proyecto para levantar la interfaz de usuario:
+
+```bash
+# 1. Instalar dependencias del frontend
+npm install
+
+# 2. Iniciar el servidor local de desarrollo
+npm run dev
+```
+*La aplicación frontend se levantará por defecto en `http://localhost:5173`.*
+
+---
+
+## 📶 📱 Configuración para Red Local (Varios Dispositivos)
+
+Si deseas probar la aplicación en tu **celular, tablet u otra computadora** conectada al mismo Wi-Fi:
+
+> [!WARNING]
+> Si dejas el código apuntando a `localhost`, tu teléfono celular intentará conectarse a sí mismo en lugar de conectarse a la computadora donde corre el servidor, marcando un error de conexión (`Network Error` o `Failed to fetch`).
+
+### Paso 1: Obtener tu IP Local
+Abre una terminal en tu computadora y averigua tu dirección IP local en la red Wi-Fi:
+* **macOS / Linux**: Ejecuta `ifconfig` (busca `inet` en `en0` o similar, p. ej. `192.168.1.75`).
+* **Windows**: Ejecuta `ipconfig` en el CMD (busca `Dirección IPv4`, p. ej. `192.168.1.75`).
+
+### Paso 2: Crear el archivo `.env` en el Frontend
+Crea un archivo `.env` en la **raíz de la carpeta del proyecto** (donde está el `package.json` principal) y añade la variable `VITE_API_URL` apuntando a la IP de tu computadora:
+
+```env
+VITE_API_URL=http://192.168.1.75:5001
+```
+*(Sustituye `192.168.1.75` por tu IP local real).*
+
+### Paso 3: Iniciar Frontend en modo red
+Para permitir que otros dispositivos en tu red local entren a ver la aplicación:
+```bash
+npm run dev -- --host
+```
+Vite te mostrará un enlace tipo `http://192.168.1.75:5173`. ¡Abre ese enlace en el navegador de tu celular y todo se conectará perfectamente!
+
+---
+
+## 🐳 Despliegue con Docker y Docker Compose
+
+El proyecto está completamente contenerizado y listo para ejecutarse de forma rápida usando Docker.
+
+### Pasos para levantar con Docker:
+
+1. **Configurar variables de entorno**:
+   Copia el archivo `.env.example` en la carpeta `backend` a `.env`:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
+   *(Asegúrate de ajustar las credenciales de base de datos en `backend/.env` si es necesario).*
+
+2. **Iniciar los servicios**:
+   Desde la raíz del proyecto, ejecuta:
+   ```bash
+   docker compose up --build -d
+   ```
+   Esto compilará y levantará:
+   * **Base de datos (MySQL 8)**: en el puerto `3306`.
+   * **Backend (Node.js/Express)**: en el puerto `5001`.
+   * **Frontend (React/Vite/Nginx)**: en el puerto `80`.
+
+3. **Ejecutar migraciones y semilla (seeders)**:
+   Una vez que los contenedores estén activos y saludables, ejecuta las migraciones y seeders para cargar datos de prueba:
+   ```bash
+   docker exec -it melihub-backend npm run db:migrate
+   docker exec -it melihub-backend npm run db:seed
+   ```
+   
+4. **Acceder a la aplicación**:
+   Ingresa a [http://localhost](http://localhost) en tu navegador web.
+
+---
+
+## 🛠️ Solución de Problemas Frecuentes (Troubleshooting)
+
+### ❌ Error: `ECONNREFUSED 127.0.0.1:3306` al iniciar backend
+* **Causa**: El backend no puede comunicarse con MySQL.
+* **Solución**: 
+  1. Asegúrate de que XAMPP, MAMP o el servicio MySQL estén activos.
+  2. Verifica que las credenciales (`DB_USER` y `DB_PASSWORD`) en `backend/.env` coincidan exactamente con tu servidor local.
+
+### ❌ Las imágenes de los apiarios o perfil no cargan (marcan error 404 o rotas)
+* **Causa**: Las imágenes se guardan en el servidor local. Si cambias de red o puerto, las URLs antiguas almacenadas en la base de datos no se actualizarán dinámicamente o la carpeta no tiene permisos de escritura.
+* **Solución**:
+  * Verifica que la carpeta `backend/uploads/` y sus subcarpetas `profiles/` y `negocios/` tengan permisos de lectura y escritura.
+  * Si utilizas IP local, edita la variable `BACKEND_URL` en tu `backend/.env` con tu IP local actual:
+    ```env
+    BACKEND_URL=http://192.168.1.75:5001
+    ```
+
+### ❌ Error `Failed to fetch` o pantalla en blanco al entrar desde el móvil
+* **Causa**: El frontend no está logrando comunicarse con la API de Express (el backend).
+* **Solución**:
+  1. Asegúrate de haber completado la sección de [Configuración para Red Local](#-configuración-para-red-local-varios-dispositivos).
+  2. Revisa que tu computadora y tu celular estén conectados exactamente al **mismo módem / red Wi-Fi**.
+  3. Verifica que tu firewall (como el de Windows o macOS) no esté bloqueando las conexiones entrantes al puerto `5001` de Node.
+
+---
+Desarrollado con 🐝 para potenciar el comercio justo y sustentable de las abejas meliponas en México.

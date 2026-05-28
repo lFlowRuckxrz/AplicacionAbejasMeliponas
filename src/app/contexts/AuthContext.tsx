@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { API_BASE_URL } from '../config';
 
 interface User {
   id: string;
@@ -33,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string): Promise<void> => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: email, password })
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<void> => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: email, password })
@@ -92,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setUserRole = async (role: 'apicultor' | 'cliente') => {
     if (user) {
       try {
-        const response = await fetch('http://localhost:5001/api/auth/role', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/role`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: user.id, rol: role })
@@ -120,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateSettings = async (nombre: string): Promise<void> => {
     if (!user) return;
     try {
-      const response = await fetch('http://localhost:5001/api/auth/settings', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: user.id, nombre })
@@ -139,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
     if (!user) return;
     try {
-      const response = await fetch('http://localhost:5001/api/auth/password', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: user.id, currentPassword, newPassword })

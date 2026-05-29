@@ -34,36 +34,42 @@ export function Register() {
     }
 
     setLoading(true);
-    const success = await register(email, password);
-    setLoading(false);
-    
-    if (success) {
+    try {
+      await register(email, password);
+      setLoading(false);
       toast.success('¡Cuenta creada exitosamente!');
       navigate('/role-selection');
-    } else {
-      setError('Este correo electrónico ya está registrado');
-      toast.error('Este correo ya está registrado');
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.message || 'Error de conexión con el servidor');
+      toast.error(err.message || 'Error de conexión');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 p-4">
-      <Card className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{
+        backgroundImage: "url('/login_bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <Card className="w-full max-w-md relative z-10 bg-black/40 backdrop-blur-xl border border-amber-500/20 shadow-[0_0_40px_rgba(245,158,11,0.15)] text-slate-100">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-amber-500 p-4 rounded-full">
-              <Bug className="w-12 h-12 text-white" />
-            </div>
+            <img src="/logo.png" alt="MeliHub Logo" className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
           </div>
-          <CardTitle className="text-3xl font-bold">Crear Cuenta</CardTitle>
-          <CardDescription>
-            Regístrate para comenzar en Apiario México
+          <CardTitle className="text-4xl font-bold text-amber-500 tracking-tight">Crear Cuenta</CardTitle>
+          <CardDescription className="text-slate-300 text-base">
+            Regístrate para comenzar en MeliHub
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Correo Electrónico</Label>
+              <Label htmlFor="email" className="text-slate-200">Correo Electrónico</Label>
               <Input
                 id="email"
                 type="email"
@@ -72,10 +78,11 @@ export function Register() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="bg-black/50 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-amber-500 h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password" className="text-slate-200">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
@@ -84,10 +91,11 @@ export function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                className="bg-black/50 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-amber-500 h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+              <Label htmlFor="confirmPassword" className="text-slate-200">Confirmar Contraseña</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -96,24 +104,25 @@ export function Register() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={loading}
+                className="bg-black/50 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-amber-500 h-12"
               />
             </div>
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              <div className="text-sm text-red-400 bg-red-950/50 border border-red-500/20 p-3 rounded-md">
                 {error}
               </div>
             )}
             <Button 
               type="submit" 
-              className="w-full bg-amber-500 hover:bg-amber-600"
+              className="w-full h-12 text-lg font-medium bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white shadow-lg shadow-amber-500/30 transition-all duration-300 transform hover:-translate-y-0.5"
               disabled={loading}
             >
               {loading ? 'Registrando...' : 'Registrarse'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-6 text-center text-sm text-slate-300">
             ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="text-amber-600 hover:underline font-medium">
+            <Link to="/login" className="text-amber-400 hover:text-amber-300 hover:underline font-medium transition-colors">
               Inicia sesión aquí
             </Link>
           </div>

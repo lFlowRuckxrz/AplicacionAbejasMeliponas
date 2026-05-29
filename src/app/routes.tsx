@@ -3,6 +3,8 @@ import { Login } from "./components/Login";
 import { Register } from "./components/Register";
 import { RoleSelection } from "./components/RoleSelection";
 import { MapView } from "./components/MapView";
+import { Profile } from "./components/Profile";
+import { MundoMelipona } from "./components/MundoMelipona";
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +26,14 @@ export const router = createBrowserRouter([
   {
     path: "/map",
     element: <MapView />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
+  },
+  {
+    path: "/mundo-melipona",
+    element: <MundoMelipona />,
   },
   {
     path: "*",

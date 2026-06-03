@@ -70,7 +70,12 @@ export function Login() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-200">Contraseña</Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password" className="text-slate-200">Contraseña</Label>
+                <Link to="/forgot-password" className="text-xs text-amber-400 hover:text-amber-300 hover:underline transition-colors font-medium">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"

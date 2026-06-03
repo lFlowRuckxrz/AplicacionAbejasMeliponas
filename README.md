@@ -69,6 +69,18 @@ DB_NAME=abejas_meliponas# Nombre de la Base de Datos
 PORT=5001               # Puerto donde correrá el backend
 ```
 
+#### 📧 Configuración de Correo para Recuperación de Contraseña (SMTP):
+Para habilitar el envío de correos reales cuando un usuario olvida su contraseña, añade y configura las siguientes variables en tu archivo `backend/.env`:
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu-correo@gmail.com
+SMTP_PASS=tu-contraseña-de-aplicacion
+SMTP_FROM="Soporte MeliHub" <tu-correo@gmail.com>
+```
+> [!TIP]
+> **Modo de Prueba Local (Sin configurar SMTP):** Si dejas las variables `SMTP_USER` y `SMTP_PASS` vacías, el sistema no fallará. En su lugar, simulará el envío e imprimirá el código de seguridad de 6 dígitos directamente en la terminal de Node.js donde se está ejecutando el backend. De esta forma puedes copiar el código e ingresarlo en la app para probar el flujo sin configuraciones previas.
+
 #### Ejecutar Migraciones y Poblado de Datos (Seeders):
 Para crear las tablas y rellenar la base de datos con apiarios de prueba:
 ```bash

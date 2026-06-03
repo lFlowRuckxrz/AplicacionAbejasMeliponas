@@ -18,6 +18,8 @@ interface AuthContextType {
   updateProfileImage: (url: string) => void;
   updateSettings: (nombre: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPasswordWithCode: (email: string, code: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -152,8 +154,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const requestPasswordReset = async (email: string): Promise<void> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al solicitar la recuperación');
+      }
+    } catch (e: any) {
+      console.error(e);
+      const isNetworkError = e.message === 'Failed to fetch' || e.message === 'Load failed' || e.message.includes('Network');
+      throw new Error(isNetworkError ? 'El servidor Backend se encuentra apagado. Por favor inicia node server.js' : e.message);
+    }
+  };
+
+  const resetPasswordWithCode = async (email: string, code: string, newPassword: string): Promise<void> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password-with-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email, code, newPassword })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cambiar la contraseña');
+      }
+    } catch (e: any) {
+      console.error(e);
+      const isNetworkError = e.message === 'Failed to fetch' || e.message === 'Load failed' || e.message.includes('Network');
+      throw new Error(isNetworkError ? 'El servidor Backend se encuentra apagado. Por favor inicia node server.js' : e.message);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, setUserRole, updateProfileImage, updateSettings, changePassword }}>
+    <AuthContext.Provider value={{ user, login, register, logout, setUserRole, updateProfileImage, updateSettings, changePassword, requestPasswordReset, resetPasswordWithCode }}>
       {children}
     </AuthContext.Provider>
   );

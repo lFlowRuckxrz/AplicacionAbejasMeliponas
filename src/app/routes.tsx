@@ -5,6 +5,7 @@ import { RoleSelection } from "./components/RoleSelection";
 import { MapView } from "./components/MapView";
 import { Profile } from "./components/Profile";
 import { MundoMelipona } from "./components/MundoMelipona";
+import { ForgotPassword } from "./components/ForgotPassword";
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ export const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
   },
   {
     path: "/role-selection",

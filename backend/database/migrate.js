@@ -10,8 +10,8 @@ async function runMigration() {
     // Connect without database first to create it if it doesn't exist
     const connection = await mysql.createConnection({
       host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
+      user: process.env.DB_USER || 'melihub_user',
+      password: process.env.DB_PASSWORD || 'cambiame_por_seguridad',
       multipleStatements: true // Allow executing multiple statements from the file
     });
 

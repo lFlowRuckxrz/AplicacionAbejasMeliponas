@@ -3,9 +3,10 @@ services:
     build: ./backend
     container_name: melihub-backend
     restart: unless-stopped
-    env_file: ./backend/.env
+    env_file: .env
     ports:
-      - "5001:5001"
+      # Opcional: Se publica en localhost por seguridad para interactuar con la API directamente desde el host.
+      - "127.0.0.1:5001:5001"
     depends_on:
       db:
         condition: service_healthy
@@ -16,7 +17,7 @@ services:
     build:
       context: .
       args:
-        - VITE_API_URL=http://localhost:5001
+        - VITE_API_URL=${VITE_API_URL}
     container_name: melihub-frontend
     restart: unless-stopped
     ports:
@@ -30,14 +31,15 @@ services:
     image: mysql:8.0
     container_name: melihub-db
     restart: unless-stopped
-    env_file: ./backend/.env
+    env_file: .env
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${DB_NAME:-abejas_meliponas}
-      MYSQL_USER: ${DB_USER:-melihub_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-melihub_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      # Opcional: Se publica en localhost para herramientas de administración desde el host.
+      - "127.0.0.1:3306:3306"
     volumes:
       - melihub_db_data:/var/lib/mysql
       - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql

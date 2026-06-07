@@ -1,61 +1,29 @@
-**Add your own guidelines here**
-<!--
+# Pautas de Desarrollo para MeliHub
 
-System Guidelines
+Este documento establece las directrices de desarrollo para el proyecto MeliHub (Aplicación de Abejas Meliponas).
 
-Use this file to provide the AI with rules and guidelines you want it to follow.
-This template outlines a few examples of things you can add. You can add your own sections and format it to suit your needs
+## Estructura del Proyecto
 
-TIP: More context isn't always better. It can confuse the LLM. Try and add the most important rules you need
+- **Frontend:** Aplicación desacoplada en la raíz construida con React, TypeScript y Tailwind CSS. Utiliza Vite como servidor de desarrollo y empaquetador.
+- **Backend:** API REST construida con Node.js, Express y MySQL (mediante `mysql2`). Las rutas se encuentran estructuradas bajo la carpeta `backend/routes/`.
+- **Base de Datos:** El esquema inicial se define en `backend/database/schema.sql`. Las migraciones locales y scripts de datos de prueba se manejan en `backend/database/`.
 
-# General guidelines
+## Variables de Entorno y Configuración
 
-Any general rules you want the AI to follow.
-For example:
+- **Desarrollo Local:** 
+  - Backend: Se configura mediante `backend/.env` (copiado desde `backend/.env.example`).
+  - Frontend: Se puede configurar localmente mediante variables `.env` en la raíz (ej: `VITE_API_URL`).
+- **Desarrollo/Despliegue Contenerizado:**
+  - Se debe utilizar el archivo `.env` en la raíz del proyecto (copiado desde `.env.example`).
+  - Las contraseñas, hosts y puertos de Docker se centralizan en este archivo.
 
-* Only use absolute positioning when necessary. Opt for responsive and well structured layouts that use flexbox and grid by default
-* Refactor code as you go to keep code clean
-* Keep file sizes small and put helper functions and components in their own files.
+## Buenas Prácticas de Codificación
 
---------------
-
-# Design system guidelines
-Rules for how the AI should make generations look like your company's design system
-
-Additionally, if you select a design system to use in the prompt box, you can reference
-your design system's components, tokens, variables and components.
-For example:
-
-* Use a base font-size of 14px
-* Date formats should always be in the format “Jun 10”
-* The bottom toolbar should only ever have a maximum of 4 items
-* Never use the floating action button with the bottom toolbar
-* Chips should always come in sets of 3 or more
-* Don't use a dropdown if there are 2 or fewer options
-
-You can also create sub sections and add more specific details
-For example:
-
-
-## Button
-The Button component is a fundamental interactive element in our design system, designed to trigger actions or navigate
-users through the application. It provides visual feedback and clear affordances to enhance user experience.
-
-### Usage
-Buttons should be used for important actions that users need to take, such as form submissions, confirming choices,
-or initiating processes. They communicate interactivity and should have clear, action-oriented labels.
-
-### Variants
-* Primary Button
-  * Purpose : Used for the main action in a section or page
-  * Visual Style : Bold, filled with the primary brand color
-  * Usage : One primary button per section to guide users toward the most important action
-* Secondary Button
-  * Purpose : Used for alternative or supporting actions
-  * Visual Style : Outlined with the primary color, transparent background
-  * Usage : Can appear alongside a primary button for less important actions
-* Tertiary Button
-  * Purpose : Used for the least important actions
-  * Visual Style : Text-only with no border, using primary color
-  * Usage : For actions that should be available but not emphasized
--->
+1. **Seguridad en la Base de Datos:**
+   - Evitar usar el usuario `root` sin contraseña en entornos locales o de desarrollo.
+   - Utilizar siempre consultas parametrizadas para evitar inyección SQL (mediante placeholders `?`).
+2. **Control de CORS:**
+   - El backend debe validar los orígenes a través de la variable `FRONTEND_URL` definida en el entorno.
+   - Mantener el origen `http://localhost` habilitado para el correcto funcionamiento del frontend contenerizado en entornos de desarrollo local.
+3. **Instalación de Dependencias:**
+   - En entornos automatizados y Dockerfiles, utilizar siempre `npm ci` en lugar de `npm install` para garantizar la reproducibilidad.

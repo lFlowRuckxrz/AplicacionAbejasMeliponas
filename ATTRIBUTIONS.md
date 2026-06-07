@@ -1,3 +1,6 @@
-This Figma Make file includes components from [shadcn/ui](https://ui.shadcn.com/) used under [MIT license](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md).
+# Atribuciones y Créditos (MeliHub)
 
-This Figma Make file includes photos from [Unsplash](https://unsplash.com) used under [license](https://unsplash.com/license).
+Este proyecto incluye componentes de las siguientes librerías de código abierto y recursos externos:
+
+- **Componentes de UI:** [shadcn/ui](https://ui.shadcn.com/) bajo la [Licencia MIT](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md).
+- **Fotografías y Recursos Visuales:** Fotos e imágenes demostrativas de [Unsplash](https://unsplash.com) bajo su [Licencia libre](https://unsplash.com/license).

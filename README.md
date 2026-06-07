@@ -148,11 +148,11 @@ El proyecto está completamente contenerizado y listo para ejecutarse de forma r
 ### Pasos para levantar con Docker:
 
 1. **Configurar variables de entorno**:
-   Copia el archivo `.env.example` en la carpeta `backend` a `.env`:
+   Copia el archivo `.env.example` en la raíz del proyecto a `.env`:
    ```bash
-   cp backend/.env.example backend/.env
+   cp .env.example .env
    ```
-   *(Asegúrate de ajustar las credenciales de base de datos en `backend/.env` si es necesario).*
+   *(Asegúrate de ajustar las credenciales de base de datos, `VITE_API_URL` y `FRONTEND_URL` en `.env` si es necesario).*
 
 2. **Iniciar los servicios**:
    Desde la raíz del proyecto, ejecuta:
@@ -160,9 +160,9 @@ El proyecto está completamente contenerizado y listo para ejecutarse de forma r
    docker compose up --build -d
    ```
    Esto compilará y levantará:
-   * **Base de datos (MySQL 8)**: en el puerto `3306`.
-   * **Backend (Node.js/Express)**: en el puerto `5001`.
-   * **Frontend (React/Vite/Nginx)**: en el puerto `80`.
+   * **Base de datos (MySQL 8)**: expuesta en `127.0.0.1:3306` (por seguridad).
+   * **Backend (Node.js/Express)**: expuesto en `127.0.0.1:5001` (por seguridad).
+   * **Frontend (React/Vite/Nginx)**: expuesto en el puerto `80`.
 
 3. **Ejecutar migraciones y semilla (seeders)**:
    Una vez que los contenedores estén activos y saludables, ejecuta las migraciones y seeders para cargar datos de prueba:

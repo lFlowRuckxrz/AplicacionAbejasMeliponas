@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Instalar las dependencias
-RUN npm install
+RUN npm ci
 
 # Copiar el resto del código del backend
 COPY . .

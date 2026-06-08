@@ -178,26 +178,23 @@ El proyecto está completamente contenerizado y listo para ejecutarse de forma r
 
 ## 🛠️ Solución de Problemas Frecuentes (Troubleshooting)
 
-### ❌ Error: `ECONNREFUSED 127.0.0.1:3306` al iniciar backend
-* **Causa**: El backend no puede comunicarse con MySQL.
+### ❌ Error: `ECONNREFUSED 127.0.0.1:3306` (o similar) al iniciar el backend
+* **Causa**: El backend no puede establecer la conexión con la base de datos MySQL.
 * **Solución**: 
-  1. Asegúrate de que XAMPP, MAMP o el servicio MySQL estén activos.
-  2. Verifica que las credenciales (`DB_USER` y `DB_PASSWORD`) en `backend/.env` coincidan exactamente con tu servidor local.
+  - **Desarrollo local (sin Docker)**: Asegúrate de que tu servidor MySQL local (XAMPP, MAMP o nativo) esté encendido y que las credenciales en `backend/.env` coincidan exactamente con tu base de datos local (generalmente `localhost`).
+  - **Despliegue con Docker**: Verifica que en tu archivo `.env` en la raíz del proyecto la variable `DB_HOST` esté configurada como `db` (el nombre del servicio en Docker Compose) y no como `localhost`. Asimismo, valida que no tengas otra instancia de MySQL corriendo en tu host que entre en conflicto.
 
 ### ❌ Las imágenes de los apiarios o perfil no cargan (marcan error 404 o rotas)
-* **Causa**: Las imágenes se guardan en el servidor local. Si cambias de red o puerto, las URLs antiguas almacenadas en la base de datos no se actualizarán dinámicamente o la carpeta no tiene permisos de escritura.
+* **Causa**: Las imágenes se guardan de manera persistente en la carpeta de subidas. Si no se configura correctamente la URL base del backend, las imágenes no se resolverán.
 * **Solución**:
-  * Verifica que la carpeta `backend/uploads/` y sus subcarpetas `profiles/` y `negocios/` tengan permisos de lectura y escritura.
-  * Si utilizas IP local, edita la variable `BACKEND_URL` en tu `backend/.env` con tu IP local actual:
-    ```env
-    BACKEND_URL=http://192.168.1.75:5001
-    ```
+  - Verifica que la carpeta `backend/uploads/` (o el volumen montado en el contenedor en `/usr/src/app/uploads`) tenga permisos de escritura.
+  - Asegúrate de configurar la variable `BACKEND_URL` en tu archivo de configuración `.env` (en la raíz si usas Docker, o en `backend/.env` si usas desarrollo local) apuntando a la IP o dominio público del backend (ej: `BACKEND_URL=http://192.168.1.75:5001`).
 
 ### ❌ Error `Failed to fetch` o pantalla en blanco al entrar desde el móvil
 * **Causa**: El frontend no está logrando comunicarse con la API de Express (el backend).
 * **Solución**:
   1. Asegúrate de haber completado la sección de [Configuración para Red Local](#-configuración-para-red-local-varios-dispositivos).
-  2. Revisa que tu computadora y tu celular estén conectados exactamente al **mismo módem / red Wi-Fi**.
+  2. Revisa que tu computadora y tu celular estén conectados exactamente al **módem / red Wi-Fi**.
   3. Verifica que tu firewall (como el de Windows o macOS) no esté bloqueando las conexiones entrantes al puerto `5001` de Node.
 
 ---

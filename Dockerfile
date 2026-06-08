@@ -21,6 +21,9 @@ RUN npm run build
 # ---- Etapa 2: Producción (Nginx) ----
 FROM nginx:alpine as production-stage
 
+# Copiar la configuración personalizada de Nginx para soporte de rutas SPA
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copiar la build generada a la carpeta pública de nginx
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 

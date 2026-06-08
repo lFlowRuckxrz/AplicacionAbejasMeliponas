@@ -7,6 +7,8 @@ services:
     ports:
       # Opcional: Se publica en localhost por seguridad para interactuar con la API directamente desde el host.
       - "127.0.0.1:5001:5001"
+    volumes:
+      - melihub_uploads:/usr/src/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -53,6 +55,7 @@ services:
 
 volumes:
   melihub_db_data:
+  melihub_uploads:
 
 networks:
   melihub_network:
